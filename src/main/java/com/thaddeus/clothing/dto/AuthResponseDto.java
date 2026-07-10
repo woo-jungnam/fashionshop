@@ -14,6 +14,13 @@ import java.util.Set;
 public class AuthResponseDto {
 
     @Schema(
+            description = "ID của tài khoản người dùng trong hệ thống.",
+            example = "4",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private Long id;
+
+    @Schema(
             description = "JWT Access Token dùng để xác thực cho tất cả API yêu cầu đăng nhập. " +
                     "Gắn vào header 'Authorization: Bearer <accessToken>' cho mọi request tiếp theo. " +
                     "Token có hiệu lực trong 24 giờ (86400 giây).",

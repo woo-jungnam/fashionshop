@@ -43,7 +43,11 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken(authentication);
 
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
         return AuthResponseDto.builder()
+                .id(user.getId())
                 .accessToken(jwt)
                 .tokenType("Bearer")
                 .email(request.getEmail())
