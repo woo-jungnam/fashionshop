@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -33,6 +35,7 @@ public class DataInitializer implements CommandLineRunner {
     private final WarehouseInventoryRepository warehouseInventoryRepository;
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         log.info("Initializing default database seeds...");
 
