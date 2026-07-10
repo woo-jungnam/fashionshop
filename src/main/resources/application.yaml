@@ -3,9 +3,9 @@ spring:
     name: clothing
 
   datasource:
-    url: jdbc:mysql://${MYSQLHOST:hayabusa.proxy.rlwy.net}:${MYSQLPORT:10313}/${MYSQLDATABASE:railway}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
-    username: ${MYSQLUSER:root}
-    password: ${MYSQLPASSWORD:iJSeNgb1TDvHAEpSAgwltRohTToSkIEI}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
