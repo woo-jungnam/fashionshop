@@ -37,7 +37,7 @@ public class PaymentServiceImpl implements PaymentService {
             String orderCode = null;
             String content = webhook.getContent();
             if (content != null) {
-                Pattern pattern = Pattern.compile("ORD-[A-Za-z0-9]+");
+                Pattern pattern = Pattern.compile("ORD-?[A-Za-z0-9]+");
                 Matcher matcher = pattern.matcher(content);
                 if (matcher.find()) {
                     orderCode = matcher.group();
@@ -53,7 +53,11 @@ public class PaymentServiceImpl implements PaymentService {
                 return;
             }
 
+            // Chuẩn hóa mã đơn hàng (thêm dấu gạch ngang nếu ngân hàng bỏ đi, ví dụ ORD755A8D94 -> ORD-755A8D94)
             orderCode = orderCode.toUpperCase();
+            if (orderCode.startsWith("ORD") && !orderCode.contains("-") && orderCode.length() > 3) {
+                orderCode = "ORD-" + orderCode.substring(3);
+            }
 
             // 2. Tìm đơn hàng
             Order order = orderSePayRepository.findByOrderCode(orderCode)
@@ -89,22 +93,27 @@ public class PaymentServiceImpl implements PaymentService {
                     .build();
             order.getStatusHistories().add(history);
             orderSePayRepository.save(order);
+            log.info("Successfully updated order {} status to PAID", orderCode);
 
-            // 5. Trừ tồn kho (Deduction of stock)
-            for (OrderItem item : order.getOrderItems()) {
-                Long variantId = item.getProductVariant().getId();
-                Integer qty = item.getQuantity();
+            // 5. Trừ tồn kho (Deduction of stock) - Wrap in try-catch to prevent rolling back successful payment
+            try {
+                for (OrderItem item : order.getOrderItems()) {
+                    Long variantId = item.getProductVariant().getId();
+                    Integer qty = item.getQuantity();
 
-                // Tìm kho đã allocate tồn kho này
-                List<WarehouseInventory> inventories = warehouseInventoryRepository.findAllocatedInventory(variantId, qty);
-                if (inventories.isEmpty()) {
-                    log.error("No allocated inventory found for variant ID {} with quantity {}", variantId, qty);
-                    throw new BusinessException(ErrorCode.OUT_OF_STOCK);
+                    // Tìm kho đã allocate tồn kho này
+                    List<WarehouseInventory> inventories = warehouseInventoryRepository.findAllocatedInventory(variantId, qty);
+                    if (inventories.isEmpty()) {
+                        log.error("No allocated inventory found for variant ID {} with quantity {}", variantId, qty);
+                        throw new BusinessException(ErrorCode.OUT_OF_STOCK);
+                    }
+
+                    WarehouseInventory targetInventory = inventories.get(0);
+                    warehouseInventoryRepository.confirmShipment(variantId, targetInventory.getWarehouse().getId(), qty);
+                    log.info("Confirmed shipment of {} units of variant ID {} from warehouse ID {}", qty, variantId, targetInventory.getWarehouse().getId());
                 }
-
-                WarehouseInventory targetInventory = inventories.get(0);
-                warehouseInventoryRepository.confirmShipment(variantId, targetInventory.getWarehouse().getId(), qty);
-                log.info("Confirmed shipment of {} units of variant ID {} from warehouse ID {}", qty, variantId, targetInventory.getWarehouse().getId());
+            } catch (Exception invEx) {
+                log.error("Failed to confirm shipment/deduct inventory for paid order {}: ", orderCode, invEx);
             }
 
             // 6. Gửi email xác nhận (Chỉ log giả lập)
