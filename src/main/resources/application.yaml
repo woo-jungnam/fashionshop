@@ -3,7 +3,6 @@ spring:
     name: clothing
 
   datasource:
-    # Bắt buộc phải có tiền tố jdbc:mysql:// và cấu hình thêm các tham số tối ưu kết nối
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
@@ -18,5 +17,4 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 
 server:
-  # CỰC KỲ QUAN TRỌNG: Railway định tuyến app thông qua biến môi trường tên là PORT (không phải DB_PORT)
-  port: ${PORT:8080}
+ port: ${PORT:8080}
