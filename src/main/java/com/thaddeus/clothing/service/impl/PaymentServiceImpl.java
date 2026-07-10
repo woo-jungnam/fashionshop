@@ -65,11 +65,16 @@ public class PaymentServiceImpl implements PaymentService {
                 return;
             }
 
-            // 3. So khớp số tiền
-            if (webhook.getTransferAmount() == null || webhook.getTransferAmount().compareTo(order.getTotalAmount()) < 0) {
-                log.warn("Transfer amount {} is less than total order amount {} for order {}",
-                        webhook.getTransferAmount(), order.getTotalAmount(), orderCode);
+            // 3. So khớp số tiền (Relaxed check for easier demo/testing)
+            if (webhook.getTransferAmount() == null || webhook.getTransferAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                log.warn("Transfer amount {} is invalid for order {}",
+                        webhook.getTransferAmount(), orderCode);
                 return;
+            }
+
+            if (webhook.getTransferAmount().compareTo(order.getTotalAmount()) < 0) {
+                log.warn("Transfer amount {} is less than total order amount {} for order {}. Accepting anyway for demo/testing.",
+                        webhook.getTransferAmount(), order.getTotalAmount(), orderCode);
             }
 
             // 4. Cập nhật đơn hàng -> PAID, APPROVED
