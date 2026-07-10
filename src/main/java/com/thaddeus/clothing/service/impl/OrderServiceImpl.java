@@ -48,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
                 .user(user)
                 .status(OrderStatus.PENDING)
                 .paymentStatus(PaymentStatus.UNPAID)
-                .shippingFee(BigDecimal.valueOf(30000)) // Phí mặc định
+                .shippingFee(BigDecimal.valueOf(10000))
                 .discountAmount(BigDecimal.ZERO)
                 .totalAmount(BigDecimal.ZERO)
                 .build();
@@ -61,10 +61,20 @@ public class OrderServiceImpl implements OrderService {
 
             WarehouseInventory inventory = warehouseInventoryRepository
                     .findWithLock(warehouse.getId(), variant.getId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.OUT_OF_STOCK));
+                    .orElse(null);
 
-            if (inventory.getAvailableToSellQty() < itemDto.getQuantity()) {
-                throw new BusinessException(ErrorCode.OUT_OF_STOCK);
+            if (inventory == null || inventory.getAvailableToSellQty() < itemDto.getQuantity()) {
+         
+                List<WarehouseInventory> availableInventories = warehouseInventoryRepository.findAll().stream()
+                        .filter(wi -> wi.getProductVariant().getId().equals(variant.getId()) 
+                                && wi.getAvailableToSellQty() >= itemDto.getQuantity())
+                        .collect(Collectors.toList());
+
+                if (availableInventories.isEmpty()) {
+                    throw new BusinessException(ErrorCode.OUT_OF_STOCK);
+                }
+                
+                inventory = availableInventories.get(0);
             }
 
             inventory.setAllocatedQty(inventory.getAllocatedQty() + itemDto.getQuantity());
