@@ -2,8 +2,14 @@ package com.thaddeus.clothing.config;
 
 import com.thaddeus.clothing.entity.Role;
 import com.thaddeus.clothing.entity.User;
+import com.thaddeus.clothing.entity.Warehouse;
+import com.thaddeus.clothing.entity.WarehouseInventory;
+import com.thaddeus.clothing.entity.ProductVariant;
 import com.thaddeus.clothing.repository.RoleRepository;
 import com.thaddeus.clothing.repository.UserRepository;
+import com.thaddeus.clothing.repository.WarehouseRepository;
+import com.thaddeus.clothing.repository.ProductVariantRepository;
+import com.thaddeus.clothing.repository.WarehouseInventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -22,6 +28,9 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final WarehouseRepository warehouseRepository;
+    private final ProductVariantRepository productVariantRepository;
+    private final WarehouseInventoryRepository warehouseInventoryRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -40,7 +49,6 @@ public class DataInitializer implements CommandLineRunner {
                     return roleRepository.save(Role.builder().name("ROLE_CUSTOMER").build());
                 });
 
-        // Seed Admin user
         String adminEmail = "admin@thaddeus.vn";
         if (!userRepository.existsByEmail(adminEmail)) {
             log.info("Seeding admin user: {}", adminEmail);
@@ -55,7 +63,6 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
         }
 
-        // Seed Customer1 user
         String customer1Email = "customer1@gmail.com";
         if (!userRepository.existsByEmail(customer1Email)) {
             log.info("Seeding customer1 user: {}", customer1Email);
@@ -71,7 +78,6 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(customer1);
         }
 
-        // Seed other customer from documentation
         String customer2Email = "nguyen.van.a@gmail.com";
         if (!userRepository.existsByEmail(customer2Email)) {
             log.info("Seeding customer A user: {}", customer2Email);
@@ -85,6 +91,22 @@ public class DataInitializer implements CommandLineRunner {
                     .roles(new HashSet<>(Set.of(customerRole)))
                     .build();
             userRepository.save(customer2);
+        }
+
+        Warehouse warehouse = warehouseRepository.findById(1L).orElse(null);
+        if (warehouse != null) {
+            for (ProductVariant v : productVariantRepository.findAll()) {
+                if (!warehouseInventoryRepository.findWithLock(warehouse.getId(), v.getId()).isPresent()) {
+                    log.info("Auto-seeding default inventory (100 qty) for variant {} in warehouse {}", v.getSku(), warehouse.getName());
+                    warehouseInventoryRepository.save(WarehouseInventory.builder()
+                            .warehouse(warehouse)
+                            .productVariant(v)
+                            .physicalQty(100)
+                            .allocatedQty(0)
+                            .availableToSellQty(100)
+                            .build());
+                }
+            }
         }
 
         log.info("Database seeds initialized successfully.");
