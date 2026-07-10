@@ -21,6 +21,8 @@ public interface WarehouseInventoryRepository extends JpaRepository<WarehouseInv
             @Param("variantId") Long variantId
     );
 
+    Optional<WarehouseInventory> findByWarehouseIdAndProductVariantId(Long warehouseId, Long productVariantId);
+
     @Modifying(clearAutomatically = true)
     @Query("UPDATE WarehouseInventory wi " +
            "SET wi.allocatedQty = wi.allocatedQty + :quantity, " +

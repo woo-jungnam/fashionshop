@@ -99,7 +99,7 @@ public class DataInitializer implements CommandLineRunner {
         Warehouse warehouse = warehouseRepository.findById(1L).orElse(null);
         if (warehouse != null) {
             for (ProductVariant v : productVariantRepository.findAll()) {
-                if (!warehouseInventoryRepository.findWithLock(warehouse.getId(), v.getId()).isPresent()) {
+                if (!warehouseInventoryRepository.findByWarehouseIdAndProductVariantId(warehouse.getId(), v.getId()).isPresent()) {
                     log.info("Auto-seeding default inventory (100 qty) for variant {} in warehouse {}", v.getSku(), warehouse.getName());
                     warehouseInventoryRepository.save(WarehouseInventory.builder()
                             .warehouse(warehouse)
