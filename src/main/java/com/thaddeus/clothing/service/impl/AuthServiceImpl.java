@@ -57,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void register(RegisterRequestDto request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         Role userRole = roleRepository.findByName("ROLE_CUSTOMER")

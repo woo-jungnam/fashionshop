@@ -17,6 +17,7 @@ public enum ErrorCode {
     BRAND_NOT_FOUND("BRD_001", "Không tìm thấy thương hiệu", HttpStatus.NOT_FOUND),
     BRAND_ALREADY_EXISTS("BRD_002", "Thương hiệu đã tồn tại", HttpStatus.BAD_REQUEST),
     WAREHOUSE_ALREADY_EXISTS("WRH_002", "Kho hàng đã tồn tại", HttpStatus.BAD_REQUEST),
+    EMAIL_ALREADY_EXISTS("USR_002", "Email này đã được đăng ký sử dụng", HttpStatus.BAD_REQUEST),
     INTERNAL_SERVER_ERROR("SYS_001", "Lỗi hệ thống nội bộ", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String code;
