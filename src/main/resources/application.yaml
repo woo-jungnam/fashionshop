@@ -3,7 +3,7 @@ spring:
     name: clothing
 
   datasource:
-    url: ${DB_URL}
+    url: ${DB_HOST}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -17,4 +17,4 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 
 server:
-  port: ${PORT:8080}
+  port: ${DB_PORT}
